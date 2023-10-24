@@ -1,0 +1,4 @@
+[submodule "cmake/blt"]
+	path = cmake/blt
+	url = https://github.com/LLNL/blt.git
+	branch = tags/v0.5.3
