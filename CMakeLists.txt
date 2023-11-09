@@ -10,13 +10,6 @@ if (NOT DEFINED GEOSX_TPL_DIR)
   message(FATAL_ERROR "You must set GEOSX_TPL_DIR with -D GEOSX_TPL_DIR=")
 endif ()
 
-include(FetchContent)
-FetchContent_Declare(blt
-    GIT_REPOSITORY https://github.com/LLNL/blt
-    GIT_TAG v0.5.3
-)
-FetchContent_MakeAvailable(blt)
-
 # ###############################
 # BLT
 # ###############################
@@ -29,11 +22,15 @@ if(DEFINED BLT_SOURCE_DIR)
     endif()
 else()
     # Use internal BLT if no BLT_SOURCE_DIR is given
-    set(BLT_SOURCE_DIR "${blt_SOURCE_DIR}" CACHE PATH "")
+    set(BLT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/cmake/blt" CACHE PATH "")
 
     if(NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
         message(FATAL_ERROR
-            "The BLT submodule is not present. ")
+            "The BLT submodule is not present. "
+            "Run the following two commands in your git repository: \n"
+            "    git submodule init\n"
+            "    git submodule update" )
+        
     endif()
 endif()
 
@@ -140,6 +137,7 @@ ExternalProject_Add(minizip
     -DCMAKE_PREFIX_PATH:PATH=<INSTALL_DIR>
     -DCMAKE_INSTALL_LIBDIR=${MINIZIP_CMAKE_INSTALL_LIBDIR}
     -DCMAKE_CXX_STANDARD=17
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )
 
 list(APPEND build_list minizip)
@@ -155,6 +153,12 @@ endif(ENABLE_MPI)
 #
 # Then Fesapi
 #
+
+# Depending on the platform, the install directory could be 'lib' or 'lib64'.
+# geos doesn't use CMake Targets to import Fesapi but needs an explicit
+# path thus it has to be fixed regardless of the platform
+set(FESAPI_CMAKE_INSTALL_LIBDIR "lib")
+
 set(FESAPI_DIR "${CMAKE_INSTALL_PREFIX}/fesapi")
 set(FESAPI_URL "${TPL_MIRROR_DIR}/fesapi-2.8.0.0.tar.gz")
 message(STATUS "Building Fesapi found at ${FESAPI_URL}")
@@ -166,12 +170,15 @@ ExternalProject_Add(fesapi
     BUILD_COMMAND ${TPL_BUILD_COMMAND}
     INSTALL_COMMAND ${TPL_INSTALL_COMMAND}
     DEPENDS minizip boost
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    CMAKE_ARGS     
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>    
     -DCMAKE_C_COMPILER=${FESAPI_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${FESAPI_CXX_COMPILER}
     -DCMAKE_CXX_FLAGS=${TPL_CXX_STANDARD}
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+    -DCMAKE_INSTALL_LIBDIR=${FESAPI_CMAKE_INSTALL_LIBDIR}
     -DCMAKE_CXX_STANDARD=17
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DHDF5_ROOT:PATH=${HDF5_DIR}
     -DHDF5_PREFER_PARALLEL:BOOL=TRUE
     -DMINIZIP_INCLUDE_DIR:PATH=${MINIZIP_DIR}/include
@@ -183,7 +190,7 @@ ExternalProject_Add(fesapi
     -DWITH_DOTNET_WRAPPING:BOOL=OFF
     -DWITH_JAVA_WRAPPING:BOOL=OFF
     -DWITH_PYTHON_WRAPPING:BOOL=OFF
-    -DWITH_RESQML2_2:BOOL=OFF
+    -DWITH_RESQML2_2:BOOL=ON
     -DWITH_TEST:BOOL=OFF)
 
 list(APPEND build_list fesapi)
