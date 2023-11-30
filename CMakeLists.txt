@@ -160,7 +160,7 @@ endif(ENABLE_MPI)
 set(FESAPI_CMAKE_INSTALL_LIBDIR "lib")
 
 set(FESAPI_DIR "${CMAKE_INSTALL_PREFIX}/fesapi")
-set(FESAPI_URL "${TPL_MIRROR_DIR}/fesapi-2.8.0.0.tar.gz")
+set(FESAPI_URL "${TPL_MIRROR_DIR}/fesapi-dev.tar.gz")
 message(STATUS "Building Fesapi found at ${FESAPI_URL}")
 
 ExternalProject_Add(fesapi
