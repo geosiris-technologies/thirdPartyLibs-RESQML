@@ -5,10 +5,13 @@ cmake_minimum_required(VERSION 3.23.1)
 # ###############################
 project(geosx_tpl_resqml LANGUAGES C CXX)
 
-set(GEOSX_TPL_DIR "$ENV{GEOSX_TPL_DIR}" CACHE PATH "" FORCE)
-if (NOT DEFINED GEOSX_TPL_DIR)
-  message(FATAL_ERROR "You must set GEOSX_TPL_DIR with -D GEOSX_TPL_DIR=")
-endif ()
+if(DEFINED ENV{GEOS_TPL_DIR})
+    set(GEOS_TPL_DIR "$ENV{GEOS_TPL_DIR}")
+elseif(DEFINED CACHE{GEOS_TPL_DIR})
+    set(GEOS_TPL_DIR "${GEOS_TPL_DIR}")
+else()
+  message(FATAL_ERROR "You must set TPL install dir with GEOS_TPL_DIR as env or cache variable")
+endif()
 
 # ###############################
 # BLT
@@ -84,7 +87,8 @@ message(STATUS "Build command = ${TPL_BUILD_COMMAND}")
 
 include(GNUInstallDirs)
 
-set(HDF5_DIR ${GEOSX_TPL_DIR}/hdf5)
+set(HDF5_ROOT ${GEOS_TPL_DIR}/hdf5)
+message(STATUS "HDF5 found at ${HDF5_ROOT}")
 
 # ###############################
 # Fesapi
@@ -160,7 +164,8 @@ endif(ENABLE_MPI)
 set(FESAPI_CMAKE_INSTALL_LIBDIR "lib")
 
 set(FESAPI_DIR "${CMAKE_INSTALL_PREFIX}/fesapi")
-set(FESAPI_URL "${TPL_MIRROR_DIR}/fesapi-dev.tar.gz")
+# set(FESAPI_URL "${TPL_MIRROR_DIR}/fesapi-dev.tar.gz")
+set(FESAPI_URL "${TPL_MIRROR_DIR}/fesapi-2.10.1.0.tar.gz")
 message(STATUS "Building Fesapi found at ${FESAPI_URL}")
 
 ExternalProject_Add(fesapi
@@ -179,7 +184,7 @@ ExternalProject_Add(fesapi
     -DCMAKE_INSTALL_LIBDIR=${FESAPI_CMAKE_INSTALL_LIBDIR}
     -DCMAKE_CXX_STANDARD=17
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DHDF5_ROOT:PATH=${HDF5_DIR}
+    -DHDF5_ROOT:PATH=${HDF5_ROOT}
     -DHDF5_PREFER_PARALLEL:BOOL=TRUE
     -DMINIZIP_INCLUDE_DIR:PATH=${MINIZIP_DIR}/include
     -DMINIZIP_LIBRARY_RELEASE:PATH=${MINIZIP_DIR}/lib/libminizip.a
